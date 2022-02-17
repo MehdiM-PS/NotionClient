@@ -1,0 +1,20 @@
+{
+    "name": "psmidmarket/notion",
+    "description": "Small API and Block parser for Notion",
+    "type": "library",
+    "require": {
+        "guzzlehttp/guzzle": "7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Psmidmarket\\Notion\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "PrestaShop Mid Market team",
+            "email": "mehdi.malki@prestashop.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
