@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Psmidmarket;
+namespace NotionClient;
 
 require_once('vendor/autoload.php');
 
@@ -49,7 +49,51 @@ class NotionClient
         }
     }
 
-    public function getPageTitle($page_id): string
+    public function displayBreadcrumbs($page_id): string
+    {
+        try {
+            $response = $this->client->request('GET', $this->basePath . 'pages/' . $page_id, [
+                'headers' => $this->headers,
+                'body' => '{}',
+            ]);
+            $current_page = json_decode($response->getBody());
+            $breadcrumb = '<nav aria-label="breadcrumb"><ol class="breadcrumb">';
+
+            $current_li = '<li class="breadcrumb-item active" aria-current="page">';
+            foreach ($current_page->properties->title->title as $text) {
+                $current_li .= $this->displayAnnotedText($text);
+            }
+            $current_li .= '</li>';
+            if ($this->hasParentBlock($current_page)) {
+                try {
+                    $response = $this->client->request('GET', $this->basePath . 'pages/' . $current_page->parent->page_id, [
+                        'headers' => $this->headers,
+                        'body' => '{}',
+                    ]);
+                    $parent_page = json_decode($response->getBody());
+                    $parent_li = '<li class="breadcrumb-item"><a href="?page_id' . $parent_page->id . '">';
+                    foreach ($parent_page->properties->title->title as $text) {
+                        $parent_li .= $this->displayAnnotedText($text);
+                    }
+                    $parent_li .= '</a></li>';
+                    $breadcrumb .= $parent_li;
+                } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+                    return '';
+                }
+            }
+            $breadcrumb .= $current_li;
+            $breadcrumb .= '</ol></nav>';
+            return $breadcrumb;
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            if ($this->debug) {
+                die($e);
+            } else {
+                return '';
+            }
+        }
+    }
+
+    public function displayPageTitle($page_id): string
     {
         try {
             $response = $this->client->request('GET', $this->basePath . 'pages/' . $page_id, [
@@ -70,6 +114,11 @@ class NotionClient
                 return '';
             }
         }
+    }
+
+    public function hasParentBlock($block): bool
+    {
+        return (isset($block->parent) && $block->parent);
     }
 
     public function isParentBlock($block): bool
@@ -198,6 +247,16 @@ class NotionClient
                     $html .= '<img class="img-fluid" src="' . $block->image->file->url . '">';
                 }
                 $html .= '</div>';
+                return $html;
+                break;
+            case 'divider':
+                return '<hr>';
+                break;
+            case 'child_page':
+                $svg = '<svg viewBox="0 0 30 30" class="notion_pageEmpty" style="width: 19.8px; height: 19.8px; fill: rgba(55, 53, 47, 0.8); flex-shrink: 0; backface-visibility: hidden;"><g> <path d="M16,1H4v28h22V11L16,1z M23.172,11H16V3.828L23.172,11z M24,27H6V3h8v10h10V27z"></path> </g></svg>';
+                $html = '<span class="notion_child_page">' . $svg;
+                $html .= '<a class="notion_link_child_page" data-id="' . $block->id . '" href="?page_id=' . $block->id . '">' . $block->child_page->title . '</a>';
+                $html .= '</span>';
                 return $html;
                 break;
             default:
