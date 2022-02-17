@@ -145,25 +145,6 @@ class NotionClient
         return $html;
     }
 
-    public function displayAnnotedText($text)
-    {
-        $html = '';
-        if (isset($text->annotations)) {
-            $html .= $this->getHtmlProperties($text->annotations);
-        }
-        if ($text->href) {
-            $html .= '<a href="' . $text->href . '">';
-        }
-        $html .= $text->plain_text;
-        if ($text->href) {
-            $html .= '</a>';
-        }
-        if (isset($text->annotations)) {
-            $html .= $this->getHtmlProperties($text->annotations, true);
-        }
-        return $html;
-    }
-
     public function getHtml($block, $closing_tag = false)
     {
         switch ($block->type) {
@@ -262,11 +243,30 @@ class NotionClient
             default:
                 if ($this->debug) {
                     echo '<pre>';
-                    var_dump($block);
+                    var_dump($block); // IN DEBUG MODE WE DISPLAY THE API RESPONSE TO ALLOW ANY DEVELOPER TO ADD THE HANDLER FOR THE NEW BLOCK TYPE
                     echo '</pre>';
                 }
                 break;
         }
+    }
+
+    public function displayAnnotedText($text)
+    {
+        $html = '';
+        if (isset($text->annotations)) {
+            $html .= $this->getHtmlProperties($text->annotations);
+        }
+        if ($text->href) {
+            $html .= '<a href="' . $text->href . '">';
+        }
+        $html .= $text->plain_text;
+        if ($text->href) {
+            $html .= '</a>';
+        }
+        if (isset($text->annotations)) {
+            $html .= $this->getHtmlProperties($text->annotations, true);
+        }
+        return $html;
     }
 
     public function getHtmlProperties($annotations, $closing_tag = false): string
