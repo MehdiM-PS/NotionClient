@@ -16,5 +16,5 @@
             "email": "mehdi.malki@prestashop.com"
         }
     ],
-    "minimum-stability": "dev"
+    "minimum-stability": "stable"
 }
